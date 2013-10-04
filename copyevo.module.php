@@ -11,7 +11,6 @@
 <h1>Множественное копирование ресурсов <sup>(alpha 0.1)</sup></h1>
 
 <?php
-
 // get parent Id
 echo  "<form method='post'>
 <table class='f-table'>
@@ -133,13 +132,6 @@ if(!isset($_POST)){ exit; }
 <script>top.mainMenu.reloadtree();</script> 
 
 <?php
- 
-/* $children = $modx->getAllChildren('15');
-echo "<pre>";
-print_r($children);
-echo "</pre>";
-*/
-
 
 function duplicateDocument($docid, $parent=null,$newtitle=null, $ispublish=null, $_toplevel=0) {
 	global $modx;
@@ -148,10 +140,6 @@ function duplicateDocument($docid, $parent=null,$newtitle=null, $ispublish=null,
 	$evtOut = $modx->invokeEvent('OnBeforeDocDuplicate', array(
 		'id' => $docid
 	));
-
-	// if( !in_array( 'false', array_values( $evtOut ) ) ){}
-	// TODO: Determine necessary handling for duplicateDocument "return $newparent" if OnBeforeDocDuplicate were able to conditially control duplication 
-	// [DISABLED]: Proceed with duplicateDocument if OnBeforeDocDuplicate did not return false via: $event->output('false');
 
 	$myChildren = array();
 	$userID = $modx->getLoginUserID();
@@ -182,16 +170,6 @@ function duplicateDocument($docid, $parent=null,$newtitle=null, $ispublish=null,
 	$content['createdon'] = time();
 	// Remove other modification times
 	$content['editedby'] = $content['editedon'] = $content['deleted'] = $content['deletedby'] = $content['deletedon'] = 0;
-
-	// [FS#922] Should the published status be honored? - sirlancelot
-//	if ($modx->hasPermission('publish_document')) {
-//		if ($modx->config['publish_default'])
-//			$content['pub_date'] = $content['pub_date']; // should this be changed to 1?
-//		else	$content['pub_date'] = 0;
-//	} else {
-		// User can't publish documents
-//		$content['published'] = $content['pub_date'] = 0;
-//	}
 
     // Set the published status to unpublished by default (see above ... commit #3388)
     $ispublish = (isset($ispublish)) ? $ispublish : '0';
@@ -287,7 +265,6 @@ function duplicateAccess($oldid,$newid){
 			$modx->db->insert(array('document'=>$newid, 'document_group'=>$row['document_group']), $tbldg);
 	}
 }
-
 ?> 
 
 </div>	
