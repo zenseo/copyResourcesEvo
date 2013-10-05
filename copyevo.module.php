@@ -2,7 +2,9 @@
 <head>
 	<title>Множественное копирование документов</title>
 	<link rel='stylesheet' type='text/css' href='/assets/modules/copyEvo/style.css' />
-	<script src="media/script/mootools/mootools.js" type="text/javascript"></script>
+	<!-- <script src="media/script/mootools/mootools.js" type="text/javascript"></script> -->
+	<script src="http://code.jquery.com/jquery.js"></script> 
+	<script type="text/javascript">jQuery.noConflict();</script>
 	<script src="/assets/modules/copyEvo/script.js" type="text/javascript"></script>
 </head>
 
@@ -38,26 +40,17 @@ echo  "<form method='post'>
 
 // html code
 $output = "<div class='doc-list'>
+<form method='post' id='form-list' name='doc-list'>
 <table class='copy-table'>
-<form method='post'>
 <thead>
-<tr>
-<td width='20' align='center'>-</td>
+<tr> 
+<td width='20' align='center'><img src='/assets/modules/copyEvo/img/uncheck.jpg' id='ucuc' title='All' alt='All'></td>
 <td width='20' align='center'>id</td>
 <td>Заголовок ресурса</td>
 </tr>
 </thead>
 
 ";
-
-$tpl = "<tr>
-<td align='center'><input type='checkbox' name='docid[]' value='[+id+]'  class='check-me'></td>
-<td align='center'>[+id+]</td>
-<td>
-[+pagetitle+]
-<input type='hidden' name='docname[]' value='[+pagetitle+]'>
-</td>
-</tr>";
 
 $whatid   = (isset($_POST['whatid'])) ? $_POST['whatid'] : '' ;
 $count    = (isset($_POST['count'])) ? $_POST['count'] : '20';
@@ -89,7 +82,7 @@ if($whatid OR $resourcestid){
 
 	foreach ($result as $ar) {
 		$output .= "<tr>
-			<td align='center'><input type='checkbox' name='docid[]' value='".$ar['id']."'  class='check-me'></td>
+			<td align='center'><input type='checkbox' name='docid[]' value='".$ar['id']."'  class='checkme'></td>
 			<td align='center'>".$ar['id']."</td>
 			<td>
 			 ".$ar['pagetitle']."
@@ -105,14 +98,10 @@ if($whatid OR $resourcestid){
 	<input type='text' class='par-id' name='parentid' value='".$whatid."'><br>
 	<input type='checkbox' name='ispublish' value='1'><label>Опубликовать сразу</label> 
 	<br><br>
-
 	<label>Новый заголовок</label> <br>
 	<input type='text' class='newtitle' style='width:350px;' name='newtitle' value=''>
-	 
-
-	
 	</td></tr>
-	</form></table></div>";
+	</table></form></div>";
 
 	echo $output;
 
@@ -130,8 +119,31 @@ if(!isset($_POST)){ exit; }
 ?>
 <!-- Refresh tree -->
 <script>top.mainMenu.reloadtree();</script> 
+<script>
+	
+function checkAll(field)
+{
+for (i = 0; i < field.length; i++)
+	field[i].checked = true ;
+}
+
+function uncheckAll(field)
+{
+for (i = 0; i < field.length; i++)
+	field[i].checked = false ;
+}
+ 
+</script>
+
 
 <?php
+ 
+/* $children = $modx->getAllChildren('15');
+echo "<pre>";
+print_r($children);
+echo "</pre>";
+*/
+
 
 function duplicateDocument($docid, $parent=null,$newtitle=null, $ispublish=null, $_toplevel=0) {
 	global $modx;
@@ -140,6 +152,10 @@ function duplicateDocument($docid, $parent=null,$newtitle=null, $ispublish=null,
 	$evtOut = $modx->invokeEvent('OnBeforeDocDuplicate', array(
 		'id' => $docid
 	));
+
+	// if( !in_array( 'false', array_values( $evtOut ) ) ){}
+	// TODO: Determine necessary handling for duplicateDocument "return $newparent" if OnBeforeDocDuplicate were able to conditially control duplication 
+	// [DISABLED]: Proceed with duplicateDocument if OnBeforeDocDuplicate did not return false via: $event->output('false');
 
 	$myChildren = array();
 	$userID = $modx->getLoginUserID();
@@ -170,6 +186,16 @@ function duplicateDocument($docid, $parent=null,$newtitle=null, $ispublish=null,
 	$content['createdon'] = time();
 	// Remove other modification times
 	$content['editedby'] = $content['editedon'] = $content['deleted'] = $content['deletedby'] = $content['deletedon'] = 0;
+
+	// [FS#922] Should the published status be honored? - sirlancelot
+//	if ($modx->hasPermission('publish_document')) {
+//		if ($modx->config['publish_default'])
+//			$content['pub_date'] = $content['pub_date']; // should this be changed to 1?
+//		else	$content['pub_date'] = 0;
+//	} else {
+		// User can't publish documents
+//		$content['published'] = $content['pub_date'] = 0;
+//	}
 
     // Set the published status to unpublished by default (see above ... commit #3388)
     $ispublish = (isset($ispublish)) ? $ispublish : '0';
@@ -265,6 +291,7 @@ function duplicateAccess($oldid,$newid){
 			$modx->db->insert(array('document'=>$newid, 'document_group'=>$row['document_group']), $tbldg);
 	}
 }
+
 ?> 
 
 </div>	
