@@ -5,6 +5,14 @@ html {
 	min-height: 100%;
 }
 
+.hidden{
+	display: none;
+}
+
+.clr{
+	clear: both;
+}
+
 .copy-docs{
 	padding: 20px;
 	background: #eee;
@@ -64,6 +72,11 @@ h1 sup{
 	width: 50px;
 }
 
+input.copy-but.but1{
+	float: left;
+	margin: 5px 15px ;
+}
+
 input.copy-but{
 	cursor: pointer;
 	float: right;
@@ -102,6 +115,15 @@ input.copy-but:hover {
 	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#FFFFFF,endColorstr=#F5F5F5);
 	zoom: 1;
 } 
- 
 
+#ucuc{
+	cursor: pointer;
+	display: block;
+}
+ 
 .even { background:#eee; padding:3px; }
+
+.newtitle{
+	width: 400px;
+	display: none;
+}

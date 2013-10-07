@@ -10,7 +10,7 @@
 
 <body>
 <div class="copy-docs">	
-<h1>Множественное копирование ресурсов <sup>(alpha 0.1)</sup></h1>
+<h1>Множественное копирование ресурсов <sup>(alpha 0.2)</sup></h1>
 
 <?php
 // get parent Id
@@ -34,7 +34,8 @@ echo  "<form method='post'>
 	</tr>
 </table>
 <br>
-<input type='submit'>
+<input type='submit' class='copy-but but1' value='Send'>
+<div class='clr'></div>
 </form>
 ";
 
@@ -57,6 +58,7 @@ $count    = (isset($_POST['count'])) ? $_POST['count'] : '20';
 $docid 	  = (isset($_POST['docid'])) ? $_POST['docid'] : '' ;
 $parentid = (isset($_POST['parentid'])) ? $_POST['parentid'] : $whatid ;
 $docname  = (isset($_POST['docname'])) ? $_POST['docname'] : '';
+$type_title = (isset($_POST['type_title'])) ? $_POST['type_title'] : '1';
 $newtitle  = (isset($_POST['newtitle'])) ? $_POST['newtitle'] : '';
 $ispublish  = (isset($_POST['ispublish'])) ? $_POST['ispublish'] : '0';
 $resourcestid = (isset($_POST['resourcestid'])) ? $_POST['resourcestid'] : '';
@@ -94,12 +96,15 @@ if($whatid OR $resourcestid){
 	$output .="
 	<tr><td colspan='3'>
 	<input type='submit' value='Copy' class='copy-but'> <br> 
+	<input type='checkbox' name='ispublish' value='1'><label>Опубликовать сразу</label> <br><br>
 	<label>Родительский контейнер</label>  <br> 
 	<input type='text' class='par-id' name='parentid' value='".$whatid."'><br>
-	<input type='checkbox' name='ispublish' value='1'><label>Опубликовать сразу</label> 
-	<br><br>
-	<label>Новый заголовок</label> <br>
-	<input type='text' class='newtitle' style='width:350px;' name='newtitle' value=''>
+	<br> 
+	<strong>Заголовок: </strong> <br>
+	<input type='radio' name='type_title' value='t1' class='inradio' checked>По умолчанию (<em>Duplicate ...</em>)<br>
+	<input type='radio' name='type_title' value='t2' class='inradio' >Оставить текущий<br>
+	<input type='radio' name='type_title' value='t3' class='inradio' >Новый общий заголовок<br> 
+	<input type='text' class='newtitle' name='newtitle' value='' placeholder='Введите новый заголовок'>
 	</td></tr>
 	</table></form></div>";
 
@@ -107,9 +112,9 @@ if($whatid OR $resourcestid){
 
 } //whatid
 
-if ($docid){  
+if ($docid){    
 	foreach($docid as $value){ 
-		duplicateDocument($value, $parent, $newtitle, $ispublish);	 
+		duplicateDocument($value, $parent, $newtitle, $ispublish, $type_title);	 
 		echo $docname[$value]." - is copied <br>"; 
 	}
 }
@@ -119,22 +124,6 @@ if(!isset($_POST)){ exit; }
 ?>
 <!-- Refresh tree -->
 <script>top.mainMenu.reloadtree();</script> 
-<script>
-	
-function checkAll(field)
-{
-for (i = 0; i < field.length; i++)
-	field[i].checked = true ;
-}
-
-function uncheckAll(field)
-{
-for (i = 0; i < field.length; i++)
-	field[i].checked = false ;
-}
- 
-</script>
-
 
 <?php
  
@@ -145,7 +134,7 @@ echo "</pre>";
 */
 
 
-function duplicateDocument($docid, $parent=null,$newtitle=null, $ispublish=null, $_toplevel=0) {
+function duplicateDocument($docid, $parent=null,$newtitle=null, $ispublish=null, $type_title=null, $_toplevel=0) {
 	global $modx;
 
 	// invoke OnBeforeDocDuplicate event
@@ -168,8 +157,21 @@ function duplicateDocument($docid, $parent=null,$newtitle=null, $ispublish=null,
 
 	unset($content['id']); // remove the current id.
 
-	// Once we've grabbed the document object, start doing some modifications
-	$newpagetitle = (!empty($newtitle)) ? $newtitle : 'Duplicate of '.$content['pagetitle'];
+	// Once we've grabbed the document object, start doing some modifications  
+	switch ($type_title) {
+		case 't1':
+			$newpagetitle = 'Duplicate of '.$content['pagetitle'];
+			break;
+		case 't2':
+			$newpagetitle = $content['pagetitle'];
+			break;			
+		case 't3':
+			$newpagetitle = (!empty($newtitle)) ? $newtitle : 'Duplicate of '.$content['pagetitle'];
+			break;				
+		default:
+			$newpagetitle = 'Duplicate of '.$content['pagetitle'];
+			break;
+	} 
 
 	if ($_toplevel == 0) {
 		$content['pagetitle'] = $newpagetitle;
